@@ -110,6 +110,31 @@ ping_scan() {
         echo -e "${RED}नेटवर्क fail/timeout या unreachable${RESET}"
     fi
 }
+compare_files_folders() {
+    echo -e "${CYAN}फाइल/FOLDER तुलना मॉड्यूल${RESET}"
+    read -p "पहला फाइल/फोल्डर: " path1
+    read -p "दूसरा फाइल/फोल्डर: " path2
+    if [[ -d "$path1" && -d "$path2" ]]; then
+        echo -e "${YELLOW}फोल्डर comparison (diff):${RESET}"
+        diff -rq "$path1" "$path2"
+        log_action "Folder diff $path1 vs $path2"
+    elif [[ -f "$path1" && -f "$path2" ]]; then
+        echo -e "${YELLOW}फाइल comparison (diff):${RESET}"
+        diff -u "$path1" "$path2" | less
+        log_action "File diff $path1 vs $path2"
+    else
+        echo -e "${RED}इनपुट सही नहीं। दोनों फाइल या दोनों फोल्डर दें!${RESET}"
+    fi
+}
+find_duplicates() {
+    read -p "किस डायरेक्टरी में डुप्लिकेट तलाशें?: " dir
+    if [[ ! -d "$dir" ]]; then
+        echo -e "${RED}डायरेक्टरी नहीं मिली!${RESET}"; return
+    fi
+    echo -e "${CYAN}MD5 चेकसम से डुप्लिकेट फाइलें:${RESET}"
+    find "$dir" -type f -exec md5sum {} + | sort | uniq -w32 -dD
+    log_action "Duplicates searched in $dir"
+}
 
 main_menu() {
     echo -e "${YELLOW}[1] हैलो वर्ल्ड टूल"
@@ -117,7 +142,9 @@ main_menu() {
     echo -e "${YELLOW}[3] डायरेक्टरी मॉनिटरिंग (लाइव)${RESET}"
     echo -e "${YELLOW}[4] नेटवर्क इंफो${RESET}"
     echo -e "${YELLOW}[5] पिंग स्कैन और इंटरनेट टेस्ट${RESET}"
-    echo -e "[0] बाहर निकलें${RESET}"
+    echo -e "${YELLOW}[6] फाइल/फोल्डर तुलना (Diff)${RESET}"
+echo -e "${YELLOW}[7] डुप्लिकेट फाइल फाइंडर${RESET}"
+echo -e "[0] बाहर निकलें${RESET}"
     read -p "आपका विकल्प: " ch
     case $ch in
         1)
@@ -134,6 +161,12 @@ main_menu() {
     read -p "जारी रखने के लिए Enter..." ;;
 5)
     ping_scan
+    read -p "जारी रखने के लिए Enter..." ;;
+6)
+    compare_files_folders
+    read -p "जारी रखने के लिए Enter..." ;;
+7)
+    find_duplicates
     read -p "जारी रखने के लिए Enter..." ;;
 
 
