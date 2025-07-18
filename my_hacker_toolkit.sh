@@ -135,6 +135,45 @@ find_duplicates() {
     find "$dir" -type f -exec md5sum {} + | sort | uniq -w32 -dD
     log_action "Duplicates searched in $dir"
 }
+encrypt_file() {
+    read -p "जिन फाइल को एन्क्रिप्ट करना है उसका नाम डालें: " infile
+    if [[ ! -f "$infile" ]]; then
+        echo -e "${RED}फाइल नहीं मिली!${RESET}"
+        return
+    fi
+    read -sp "पासवर्ड दर्ज करें (एन्क्रिप्शन के लिए): " pass
+    echo
+    outfile="${infile}.enc"
+    openssl aes-256-cbc -salt -in "$infile" -out "$outfile" -k "$pass"
+    if [[ $? -eq 0 ]]; then
+        echo -e "${GREEN}फाइल एन्क्रिप्ट हो गई: $outfile${RESET}"
+        log_action "Encrypted file $infile"
+    else
+        echo -e "${RED}एन्क्रिप्शन में त्रुटि!${RESET}"
+    fi
+}
+decrypt_file() {
+    read -p "जिन फाइल को डिक्रिप्ट करना है उसका नाम डालें (.enc फाइल): " infile
+    if [[ ! -f "$infile" ]]; then
+        echo -e "${RED}फाइल नहीं मिली!${RESET}"
+        return
+    fi
+    read -sp "पासवर्ड दर्ज करें (डिक्रिप्शन के लिए): " pass
+    echo
+    # डिक्रिप्टेड फाइल का नाम .dec हटाकर रखें
+    if [[ "$infile" == *.enc ]]; then
+        outfile="${infile%.enc}.dec"
+    else
+        outfile="${infile}.dec"
+    fi
+    openssl aes-256-cbc -d -in "$infile" -out "$outfile" -k "$pass"
+    if [[ $? -eq 0 ]]; then
+        echo -e "${GREEN}फाइल डिक्रिप्ट हो गई: $outfile${RESET}"
+        log_action "Decrypted file $infile"
+    else
+        echo -e "${RED}डिक्रिप्शन में त्रुटि! हो सकती है पासवर्ड गलत है।${RESET}"
+    fi
+}
 
 main_menu() {
     echo -e "${YELLOW}[1] हैलो वर्ल्ड टूल"
@@ -144,6 +183,8 @@ main_menu() {
     echo -e "${YELLOW}[5] पिंग स्कैन और इंटरनेट टेस्ट${RESET}"
     echo -e "${YELLOW}[6] फाइल/फोल्डर तुलना (Diff)${RESET}"
 echo -e "${YELLOW}[7] डुप्लिकेट फाइल फाइंडर${RESET}"
+echo -e "${YELLOW}[8] फाइल एन्क्रिप्शन करें${RESET}"
+echo -e "${YELLOW}[9] फाइल डिक्रिप्शन करें${RESET}"
 echo -e "[0] बाहर निकलें${RESET}"
     read -p "आपका विकल्प: " ch
     case $ch in
@@ -168,6 +209,12 @@ echo -e "[0] बाहर निकलें${RESET}"
 7)
     find_duplicates
     read -p "जारी रखने के लिए Enter..." ;;
+8)
+    encrypt_file
+    read -p "जारी रखने के लिए Enter दबाएं..." ;;
+9)
+    decrypt_file
+    read -p "जारी रखने के लिए Enter दबाएं..." ;;
 
 
         0) exit ;;
