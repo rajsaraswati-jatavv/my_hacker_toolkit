@@ -45,10 +45,48 @@ generate_html_report() {
     </body></html>" >> "$out"
     echo -e "${CYAN}रिपोर्ट बन गई: $out${RESET}"
 }
+monitor_directory() {
+    echo "मॉनिटर के लिए डायरेक्टरी (default: \$HOME):"
+    read target
+    target="${target:-$HOME}"
+    if [[ ! -d "$target" ]]; then
+        echo -e "${RED}डायरेक्टरी गलत है!${RESET}"
+        return
+    fi
+    echo -e "${GREEN}निगरानी शुरू: $target (Ctrl+C से रोकें)${RESET}"
+
+    # Termux/Android: inotifywait (या pure bash fallback)
+    if command -v inotifywait >/dev/null 2>&1; then
+        inotifywait -m -r -e create,delete,modify,move "$target" --format '%T %w %e %f' --timefmt '%d-%m-%Y %H:%M' |
+        while read ts path evt file; do
+            echo -e "${YELLOW}[$ts] $path$file : $evt${RESET}"
+            # टर्मक्स वॉयस-नोटिफिकेशन
+            if command -v termux-tts-speak >/dev/null; then
+                termux-tts-speak "Directory changed"
+            fi
+            if command -v termux-vibrate >/dev/null; then
+                termux-vibrate -d 300
+            fi
+        done
+    else
+        # Pure Bash fallback (कम इवेंट वास्तविकता)
+        prev="$(ls -lR "$target")"
+        while true
+        do
+            sleep 3
+            curr="$(ls -lR "$target")"
+            if [[ "$curr" != "$prev" ]]; then
+                echo -e "${YELLOW}[$(date)] बदलाव पाया गया${RESET}"
+                prev="$curr"
+            fi
+        done
+    fi
+}
 
 main_menu() {
     echo -e "${YELLOW}[1] हैलो वर्ल्ड टूल"
     echo -e "${YELLOW}[2] डायरेक्टरी स्कैन + HTML रिपोर्ट${RESET}"
+    echo -e "${YELLOW}[3] डायरेक्टरी मॉनिटरिंग (लाइव)${RESET}"
     echo -e "[0] बाहर निकलें${RESET}"
     read -p "आपका विकल्प: " ch
     case $ch in
@@ -58,6 +96,10 @@ main_menu() {
         2)
     generate_html_report
     read -p "जारी रखने के लिए Enter..." ;;
+        3)
+    monitor_directory
+    read -p "जारी रखने के लिए Enter..." ;;
+
 
         0) exit ;;
         *) echo "गलत चयन!" ;;
