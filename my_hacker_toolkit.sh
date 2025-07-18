@@ -218,6 +218,22 @@ change_lang() {
 
 # शुरुआत में लोड करें:
 load_lang
+check_update() {
+    echo -e "${CYAN}टूलकिट वर्शन: $TOOLKIT_VERSION${RESET}"
+    echo -e "CHANGELOG:\n$(head -5 $HOME/my_hacker_toolkit/CHANGELOG.md)"
+    # रिमोट ล่าสุด वर्शन खोजें (GitHub)
+    git fetch origin main >/dev/null 2>&1
+    localver=$(git rev-parse HEAD)
+    remotever=$(git rev-parse origin/main)
+    if [[ "$localver" != "$remotever" ]]; then
+        echo -e "${YELLOW}अपडेट उपलब्ध है!${RESET}"
+        echo "लेटेस्ट प्राप्त करने के लिए यह कमांड चलाएँ:"
+        echo -e "${GREEN}git pull origin main${RESET}"
+    else
+        echo -e "${GREEN}आप लेटेस्ट वर्शन चला रहे हैं!${RESET}"
+    fi
+    log_action "Version check/Auto-update"
+}
 
 main_menu() {
     echo -e "${YELLOW}[1] हैलो वर्ल्ड टूल"
@@ -231,6 +247,7 @@ echo -e "${YELLOW}[8] फाइल एन्क्रिप्शन करे�
 echo -e "${YELLOW}[9] फाइल डिक्रिप्शन करें${RESET}"
 echo -e "${YELLOW}[10] रंग-थीम बदलें${RESET}"
 echo -e "${YELLOW}[11] भाषा बदलें (Language)${RESET}"
+echo -e "${YELLOW}[12] वर्शन चेक/अपडेट${RESET}"
 echo -e "[0] बाहर निकलें${RESET}"
     read -p "आपका विकल्प: " ch
     case $ch in
@@ -267,6 +284,9 @@ echo -e "[0] बाहर निकलें${RESET}"
 11)
     change_lang
     read -p "जारी रखने के लिए Enter..." ;;
+12)
+    check_update
+    read -p "Enter दबाएँ..." ;;
 
 
         0) exit ;;
