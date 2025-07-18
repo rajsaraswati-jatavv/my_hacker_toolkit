@@ -174,6 +174,50 @@ decrypt_file() {
         echo -e "${RED}डिक्रिप्शन में त्रुटि! हो सकती है पासवर्ड गलत है।${RESET}"
     fi
 }
+set_theme() {
+    echo -e "${YELLOW}1) Green${RESET}"
+    echo -e "${CYAN}2) Neon${RESET}"
+    read -p "कौन सी थीम? (1/2): " t
+    if [[ "$t" == "2" ]]; then
+        export RED='\033[1;35m'
+        export GREEN='\033[1;92m'
+        export YELLOW='\033[1;93m'
+        export CYAN='\033[1;96m'
+        export BOLD='\033[1m'
+        export RESET='\033[0m'
+    else
+        export RED='\033[0;31m'
+        export GREEN='\033[0;32m'
+        export YELLOW='\033[1;33m'
+        export CYAN='\033[0;36m'
+        export BOLD='\033[1m'
+        export RESET='\033[0m'
+    fi
+    log_action "Theme changed"
+}
+load_lang() {
+    export TOOL_LANG="${TOOL_LANG:-hi}"
+    if [[ "$TOOL_LANG" == "en" ]]; then
+        source "$HOME/my_hacker_toolkit/lang/en.lang"
+    else
+        source "$HOME/my_hacker_toolkit/lang/hi.lang"
+    fi
+}
+
+change_lang() {
+    echo "1) हिंदी  2) English"
+    read -p "कौन सी भाषा?: " l
+    if [[ "$l" == "2" ]]; then
+        export TOOL_LANG='en'
+    else
+        export TOOL_LANG='hi'
+    fi
+    load_lang
+    log_action "Language changed"
+}
+
+# शुरुआत में लोड करें:
+load_lang
 
 main_menu() {
     echo -e "${YELLOW}[1] हैलो वर्ल्ड टूल"
@@ -185,6 +229,8 @@ main_menu() {
 echo -e "${YELLOW}[7] डुप्लिकेट फाइल फाइंडर${RESET}"
 echo -e "${YELLOW}[8] फाइल एन्क्रिप्शन करें${RESET}"
 echo -e "${YELLOW}[9] फाइल डिक्रिप्शन करें${RESET}"
+echo -e "${YELLOW}[10] रंग-थीम बदलें${RESET}"
+echo -e "${YELLOW}[11] भाषा बदलें (Language)${RESET}"
 echo -e "[0] बाहर निकलें${RESET}"
     read -p "आपका विकल्प: " ch
     case $ch in
@@ -215,6 +261,12 @@ echo -e "[0] बाहर निकलें${RESET}"
 9)
     decrypt_file
     read -p "जारी रखने के लिए Enter दबाएं..." ;;
+10)
+    set_theme
+    read -p "जारी रखने के लिए Enter..." ;;
+11)
+    change_lang
+    read -p "जारी रखने के लिए Enter..." ;;
 
 
         0) exit ;;
