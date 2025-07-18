@@ -82,11 +82,41 @@ monitor_directory() {
         done
     fi
 }
+network_info() {
+    echo -e "${CYAN}==== नेटवर्क जानकारी ====${RESET}"
+    # आईपी, गेटवे, DNS, इफ कनेक्शन शो
+    if command -v ip >/dev/null; then
+        ip -4 addr show | grep inet
+        echo -e "\nGateway:"
+        ip route | grep default
+    else
+        ifconfig
+    fi
+    echo -e "\nActive नेटवर्क कनेक्शन (ss/netstat):"
+    if command -v ss >/dev/null; then
+        ss -tulpan
+    else
+        netstat -tulpan
+    fi
+}
+ping_scan() {
+    read -p "Host/IP डालें (default: 8.8.8.8): " target
+    target="${target:-8.8.8.8}"
+    echo -e "${YELLOW}पिंग टेस्ट $target ...${RESET}"
+    ping -c 4 "$target"
+    if [[ $? -eq 0 ]]; then
+        echo -e "${GREEN}इंटरनेट/नेटवर्क कनेक्शन OK${RESET}"
+    else
+        echo -e "${RED}नेटवर्क fail/timeout या unreachable${RESET}"
+    fi
+}
 
 main_menu() {
     echo -e "${YELLOW}[1] हैलो वर्ल्ड टूल"
     echo -e "${YELLOW}[2] डायरेक्टरी स्कैन + HTML रिपोर्ट${RESET}"
     echo -e "${YELLOW}[3] डायरेक्टरी मॉनिटरिंग (लाइव)${RESET}"
+    echo -e "${YELLOW}[4] नेटवर्क इंफो${RESET}"
+    echo -e "${YELLOW}[5] पिंग स्कैन और इंटरनेट टेस्ट${RESET}"
     echo -e "[0] बाहर निकलें${RESET}"
     read -p "आपका विकल्प: " ch
     case $ch in
@@ -99,12 +129,19 @@ main_menu() {
         3)
     monitor_directory
     read -p "जारी रखने के लिए Enter..." ;;
+        4)
+    network_info
+    read -p "जारी रखने के लिए Enter..." ;;
+5)
+    ping_scan
+    read -p "जारी रखने के लिए Enter..." ;;
 
 
         0) exit ;;
         *) echo "गलत चयन!" ;;
     esac
 }
+log_action "Ping scan on $target – result: $?"
 
 clear
 show_banner
