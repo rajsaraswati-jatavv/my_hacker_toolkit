@@ -234,6 +234,27 @@ check_update() {
     fi
     log_action "Version check/Auto-update"
 }
+auto_backup() {
+    local backup_name="toolkit_backup_$(date +%Y%m%d_%H%M%S).zip"
+    cd "$HOME"
+    zip -r "$backup_name" my_hacker_toolkit > /dev/null
+    if [[ $? -eq 0 ]]; then
+        echo -e "${GREEN}बैकअप तैयार: $HOME/$backup_name${RESET}"
+        log_action "Backup created: $backup_name"
+    else
+        echo -e "${RED}बैकअप फेल!${RESET}"
+    fi
+}
+restore_backup() {
+    read -p "कौन सा ZIP बैकअप restore करें? (पूरा path): " backup_zip
+    if [[ ! -f "$backup_zip" ]]; then
+        echo -e "${RED}बैकअप फाइल नहीं मिली!${RESET}"
+        return
+    fi
+    unzip -o "$backup_zip" -d "$HOME" && \
+    echo -e "${GREEN}Restore successful! अब my_hacker_toolkit ताजा हुआ।${RESET}"
+    log_action "Restore from backup: $backup_zip"
+}
 
 main_menu() {
     echo -e "${YELLOW}[1] हैलो वर्ल्ड टूल"
@@ -248,6 +269,8 @@ echo -e "${YELLOW}[9] फाइल डिक्रिप्शन करें${
 echo -e "${YELLOW}[10] रंग-थीम बदलें${RESET}"
 echo -e "${YELLOW}[11] भाषा बदलें (Language)${RESET}"
 echo -e "${YELLOW}[12] वर्शन चेक/अपडेट${RESET}"
+echo -e "${YELLOW}[13] Toolkit का Backup (ZIP export) करें${RESET}"
+echo -e "${YELLOW}[14] Backup से Restore करें${RESET}"
 echo -e "[0] बाहर निकलें${RESET}"
     read -p "आपका विकल्प: " ch
     case $ch in
@@ -287,6 +310,12 @@ echo -e "[0] बाहर निकलें${RESET}"
 12)
     check_update
     read -p "Enter दबाएँ..." ;;
+13)
+    auto_backup
+    read -p "जारी रखने के लिए Enter..." ;;
+14)
+    restore_backup
+    read -p "जारी रखने के लिए Enter..." ;;
 
 
         0) exit ;;
